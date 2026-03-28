@@ -2,13 +2,20 @@ from flask import Flask, request, jsonify
 import pickle
 import pandas as pd
 import os
+import subprocess
 
 app = Flask(__name__)
 
-# Load model
-model = pickle.load(open("../model/model.pkl", "rb"))
 
-# Feature names (IMPORTANT for correct mapping)
+model_path = "../model/model.pkl"
+
+if not os.path.exists(model_path):
+    print("🚀 Model not found. Training model...")
+    subprocess.run(["python", "train.py"])
+
+model = pickle.load(open(model_path, "rb"))
+
+
 feature_names = [
     "Time","V1","V2","V3","V4","V5","V6","V7","V8","V9",
     "V10","V11","V12","V13","V14","V15","V16","V17","V18",
@@ -16,23 +23,24 @@ feature_names = [
     "V28","Amount"
 ]
 
+
 @app.route("/")
 def home():
-    return " ML Fraud Detection API Running"
+    return "🚀 ML Fraud Detection API Running"
 
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
         data = request.json["features"]
 
-        # Convert to DataFrame (fixes warning + keeps feature order)
+        # Convert input to DataFrame
         df = pd.DataFrame([data], columns=feature_names)
 
         # Prediction
         prediction = model.predict(df)[0]
         probability = model.predict_proba(df)[0][1]
 
-        # Explainability (feature contribution approximation)
+        # Explainability (approximation)
         contributions = df.iloc[0] * model.feature_importances_
 
         top_features = sorted(
@@ -55,4 +63,4 @@ def predict():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
-app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port)
