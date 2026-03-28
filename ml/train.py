@@ -5,7 +5,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 # Load dataset
-df = pd.read_csv("../data/creditcard.csv")
+df = pd.read_csv("https://storage.googleapis.com/download.tensorflow.org/data/creditcard.csv")
 
 # Features & target
 X = df.drop("Class", axis=1)
